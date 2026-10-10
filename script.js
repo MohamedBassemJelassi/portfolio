@@ -1,4 +1,86 @@
 /* =============================================
+   Scroll Reveal — Bulletproof Version
+   Uses IntersectionObserver with rootMargin so elements
+   reveal as soon as they enter the viewport (not on click).
+============================================= */
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function () {
+
+  // Fallback: if IntersectionObserver isn't supported, show everything
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.reveal, .reveal-hero').forEach(el => {
+      el.classList.add('is-visible');
+    });
+    return;
+  }
+
+  // 1. Mark elements to reveal
+  // All section headers, grids, cards, and hero items
+  const revealTargets = document.querySelectorAll(
+    '.section-header, .about-grid, .about-card, .timeline-item, .project-filters, ' +
+    '.project-card, .skill-block, .languages, .cert-card, .coursework, ' +
+    '.contact-card, .hero-meta, .meta-item, .languages'
+  );
+
+  // Add .reveal class to each
+  revealTargets.forEach(el => el.classList.add('reveal'));
+
+  // Hero items reveal on load with stagger
+  const heroItems = document.querySelectorAll(
+    '.hero-badge, .hero-title, .hero-subtitle, .hero-tags, .hero-actions, .hero-meta'
+  );
+  heroItems.forEach(el => el.classList.add('reveal-hero'));
+
+  // 2. Create observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, {
+    // Fire when 10% of the element is visible, but wait until
+    // it's at least 60px inside the viewport to avoid edge-cases
+    threshold: 0.1,
+    rootMargin: '0px 0px -60px 0px'
+  });
+
+  // 3. Observe all reveal targets
+  document.querySelectorAll('.reveal, .reveal-hero').forEach(el => {
+    observer.observe(el);
+  });
+
+  // 4. Reveal hero items immediately on load (they're above the fold)
+  setTimeout(() => {
+    heroItems.forEach((el, i) => {
+      setTimeout(() => el.classList.add('is-visible'), i * 100);
+    });
+  }, 100);
+
+  // 5. Language bars grow when visible
+  const bars = document.querySelectorAll('.lang-fill');
+  bars.forEach(bar => {
+    const w = bar.style.width || '100%';
+    bar.style.setProperty('--w', w);
+    bar.style.width = '0';
+  });
+
+  const barObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        barObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  bars.forEach(bar => barObserver.observe(bar));
+
+});
+
+/* =============================================
    Project Filter
 ============================================= */
 const filterBtns = document.querySelectorAll('.filter-btn');
@@ -14,6 +96,8 @@ filterBtns.forEach(btn => {
       const cats = card.dataset.category || '';
       if (filter === 'all' || cats.includes(filter)) {
         card.style.display = 'flex';
+        // Re-trigger reveal so they appear
+        card.classList.add('is-visible');
       } else {
         card.style.display = 'none';
       }
