@@ -60,3 +60,74 @@ window.addEventListener('scroll', () => {
     nav.style.background = 'rgba(15, 17, 48, 0.6)';
   }
 });
+
+/* =============================================
+   ✨ SCROLL REVEAL ANIMATIONS (restored)
+   Each element fades in + slides up when scrolled into view.
+   Staggered delays create a cascading effect.
+   Safe fallback: if JS is disabled, elements are visible.
+============================================= */
+
+// 1. Mark body as JS-enabled so the animation CSS only applies when JS runs
+document.body.classList.add('js-enabled');
+
+// 2. Elements to animate on scroll
+const revealTargets = document.querySelectorAll(
+  '.section-header, .about-grid, .timeline-item, .project-card, .skill-block, .languages, .cert-card, .coursework, .contact-card, .hero-meta, .meta-item'
+);
+
+// 3. Set initial hidden state + staggered delay
+revealTargets.forEach((el, i) => {
+  el.classList.add('reveal');
+  // Stagger by 60ms per element, capped at 400ms
+  el.style.transitionDelay = `${Math.min(i * 60, 400)}ms`;
+});
+
+// 4. IntersectionObserver — fires when element scrolls into view
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('is-visible');
+      // Stop observing once revealed (no re-hide on scroll up)
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, {
+  threshold: 0.12,
+  rootMargin: '0px 0px -60px 0px'
+});
+
+// 5. Observe each target
+revealTargets.forEach(el => revealObserver.observe(el));
+
+/* =============================================
+   ✨ ANIMATE BARS (skill + language) ON VIEW
+   Bars grow from 0 to their target width.
+============================================= */
+const barObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const finalWidth = el.dataset.targetWidth || el.style.width || '100%';
+      el.dataset.targetWidth = finalWidth;
+      el.style.width = '0';
+      // Small delay so the reveal animation plays first
+      setTimeout(() => {
+        el.style.width = finalWidth;
+      }, 200);
+      barObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.lang-fill').forEach(el => {
+  barObserver.observe(el);
+});
+
+/* =============================================
+   ✨ HERO ENTRY ANIMATION (plays once on load)
+============================================= */
+window.addEventListener('load', () => {
+  const hero = document.querySelector('.hero-content');
+  if (hero) hero.classList.add('hero-loaded');
+});
