@@ -1,106 +1,87 @@
 /* =============================================
-   Scroll Reveal — Bulletproof Version
-   Uses IntersectionObserver with rootMargin so elements
-   reveal as soon as they enter the viewport (not on click).
+   Scroll Reveal Animation
+   Every element marked with .reveal fades in + slides up
+   when it enters the viewport.
 ============================================= */
-
-// Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', function () {
-
-  // Fallback: if IntersectionObserver isn't supported, show everything
+(function () {
+  // Safety: if IntersectionObserver isn't supported, show everything immediately
   if (!('IntersectionObserver' in window)) {
-    document.querySelectorAll('.reveal, .reveal-hero').forEach(el => {
+    document.querySelectorAll('.reveal').forEach(function (el) {
       el.classList.add('is-visible');
     });
     return;
   }
 
-  // 1. Mark elements to reveal
-  // All section headers, grids, cards, and hero items
-  const revealTargets = document.querySelectorAll(
-    '.section-header, .about-grid, .about-card, .timeline-item, .project-filters, ' +
-    '.project-card, .skill-block, .languages, .cert-card, .coursework, ' +
-    '.contact-card, .hero-meta, .meta-item, .languages'
+  // Elements to animate on scroll
+  var targets = document.querySelectorAll(
+    '.section-header, .about-grid, .about-card, .timeline-item, ' +
+    '.project-filters, .project-card, .skill-block, .languages, ' +
+    '.cert-card, .coursework, .contact-card, .hero-meta'
   );
 
-  // Add .reveal class to each
-  revealTargets.forEach(el => el.classList.add('reveal'));
+  // Add the .reveal class to each
+  targets.forEach(function (el) {
+    el.classList.add('reveal');
+  });
 
-  // Hero items reveal on load with stagger
-  const heroItems = document.querySelectorAll(
-    '.hero-badge, .hero-title, .hero-subtitle, .hero-tags, .hero-actions, .hero-meta'
-  );
-  heroItems.forEach(el => el.classList.add('reveal-hero'));
-
-  // 2. Create observer
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  // Create the observer
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) {
         entry.target.classList.add('is-visible');
         observer.unobserve(entry.target);
       }
     });
   }, {
-    // Fire when 10% of the element is visible, but wait until
-    // it's at least 60px inside the viewport to avoid edge-cases
-    threshold: 0.1,
-    rootMargin: '0px 0px -60px 0px'
+    threshold: 0.08,
+    rootMargin: '0px 0px -40px 0px'
   });
 
-  // 3. Observe all reveal targets
-  document.querySelectorAll('.reveal, .reveal-hero').forEach(el => {
+  // Observe every target
+  document.querySelectorAll('.reveal').forEach(function (el) {
     observer.observe(el);
   });
 
-  // 4. Reveal hero items immediately on load (they're above the fold)
-  setTimeout(() => {
-    heroItems.forEach((el, i) => {
-      setTimeout(() => el.classList.add('is-visible'), i * 100);
-    });
-  }, 100);
-
-  // 5. Language bars grow when visible
-  const bars = document.querySelectorAll('.lang-fill');
-  bars.forEach(bar => {
-    const w = bar.style.width || '100%';
-    bar.style.setProperty('--w', w);
-    bar.style.width = '0';
-  });
-
-  const barObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
+  // Language bars: grow from 0 to their target width on view
+  var bars = document.querySelectorAll('.lang-fill');
+  var barObserver = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
       if (entry.isIntersecting) {
-        entry.target.classList.add('is-visible');
-        barObserver.unobserve(entry.target);
+        var bar = entry.target;
+        var w = bar.getAttribute('data-width') || '100%';
+        bar.style.width = w;
+        barObserver.unobserve(bar);
       }
     });
-  }, { threshold: 0.4 });
+  }, { threshold: 0.3 });
 
-  bars.forEach(bar => barObserver.observe(bar));
-
-});
+  bars.forEach(function (bar) {
+    barObserver.observe(bar);
+  });
+})();
 
 /* =============================================
    Project Filter
 ============================================= */
-const filterBtns = document.querySelectorAll('.filter-btn');
-const projectCards = document.querySelectorAll('.project-card');
+document.addEventListener('DOMContentLoaded', function () {
+  var filterBtns = document.querySelectorAll('.filter-btn');
+  var projectCards = document.querySelectorAll('.project-card');
 
-filterBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    filterBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+  filterBtns.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      filterBtns.forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
 
-    const filter = btn.dataset.filter;
-    projectCards.forEach(card => {
-      const cats = card.dataset.category || '';
-      if (filter === 'all' || cats.includes(filter)) {
-        card.style.display = 'flex';
-        // Re-trigger reveal so they appear
-        card.classList.add('is-visible');
-      } else {
-        card.style.display = 'none';
-      }
+      var filter = btn.dataset.filter;
+      projectCards.forEach(function (card) {
+        var cats = card.dataset.category || '';
+        if (filter === 'all' || cats.indexOf(filter) !== -1) {
+          card.style.display = 'flex';
+          card.classList.add('is-visible');
+        } else {
+          card.style.display = 'none';
+        }
+      });
     });
   });
 });
@@ -108,34 +89,38 @@ filterBtns.forEach(btn => {
 /* =============================================
    Mobile Nav Toggle
 ============================================= */
-const navToggle = document.querySelector('.nav-toggle');
-const navLinks = document.querySelector('.nav-links');
+document.addEventListener('DOMContentLoaded', function () {
+  var navToggle = document.querySelector('.nav-toggle');
+  var navLinks = document.querySelector('.nav-links');
+  if (!navToggle || !navLinks) return;
 
-navToggle.addEventListener('click', () => {
-  const isOpen = navLinks.style.display === 'flex';
-  if (isOpen) {
-    navLinks.style.display = '';
-  } else {
-    navLinks.style.display = 'flex';
-    navLinks.style.position = 'absolute';
-    navLinks.style.top = '100%';
-    navLinks.style.right = '0';
-    navLinks.style.left = '0';
-    navLinks.style.marginTop = '12px';
-    navLinks.style.flexDirection = 'column';
-    navLinks.style.padding = '20px';
-    navLinks.style.background = 'rgba(15, 17, 48, 0.95)';
-    navLinks.style.backdropFilter = 'blur(20px)';
-    navLinks.style.borderRadius = '16px';
-    navLinks.style.border = '1px solid rgba(255,255,255,0.08)';
-  }
+  navToggle.addEventListener('click', function () {
+    var isOpen = navLinks.style.display === 'flex';
+    if (isOpen) {
+      navLinks.style.display = '';
+    } else {
+      navLinks.style.display = 'flex';
+      navLinks.style.position = 'absolute';
+      navLinks.style.top = '100%';
+      navLinks.style.right = '0';
+      navLinks.style.left = '0';
+      navLinks.style.marginTop = '12px';
+      navLinks.style.flexDirection = 'column';
+      navLinks.style.padding = '20px';
+      navLinks.style.background = 'rgba(15, 17, 48, 0.95)';
+      navLinks.style.backdropFilter = 'blur(20px)';
+      navLinks.style.borderRadius = '16px';
+      navLinks.style.border = '1px solid rgba(255,255,255,0.08)';
+    }
+  });
 });
 
 /* =============================================
    Navbar shrink on scroll
 ============================================= */
-window.addEventListener('scroll', () => {
-  const nav = document.querySelector('.nav');
+window.addEventListener('scroll', function () {
+  var nav = document.querySelector('.nav');
+  if (!nav) return;
   if (window.scrollY > 40) {
     nav.style.padding = '8px 20px';
     nav.style.background = 'rgba(15, 17, 48, 0.85)';
