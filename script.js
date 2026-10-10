@@ -14,7 +14,6 @@ filterBtns.forEach(btn => {
       const cats = card.dataset.category || '';
       if (filter === 'all' || cats.includes(filter)) {
         card.style.display = 'flex';
-        card.style.animation = 'fadeUp 0.4s ease';
       } else {
         card.style.display = 'none';
       }
@@ -46,45 +45,6 @@ navToggle.addEventListener('click', () => {
     navLinks.style.borderRadius = '16px';
     navLinks.style.border = '1px solid rgba(255,255,255,0.08)';
   }
-});
-
-/* =============================================
-   Scroll Reveal
-============================================= */
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, { threshold: 0.1 });
-
-document.querySelectorAll('.section, .project-card, .timeline-item, .cert-card, .skill-block').forEach(el => {
-  el.style.opacity = '0';
-  el.style.transform = 'translateY(30px)';
-  el.style.transition = 'opacity 0.7s ease, transform 0.7s ease';
-  observer.observe(el);
-});
-
-/* =============================================
-   Animate charts & language bars on view
-============================================= */
-const chartObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.width = entry.target.style.getPropertyValue('--val') || entry.target.style.width;
-      chartObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.3 });
-
-document.querySelectorAll('.chart-bar, .lang-fill').forEach(el => {
-  const finalWidth = el.classList.contains('chart-bar')
-    ? (el.style.getPropertyValue('--val') || '100%')
-    : el.style.width;
-  el.style.width = '0';
-  setTimeout(() => { el.style.width = finalWidth; }, 200);
 });
 
 /* =============================================
